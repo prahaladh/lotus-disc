@@ -6,61 +6,57 @@
     <title>Lotus Master Tracker</title>
     <style>
         :root { --bg: #1e272e; --card: #2f3640; --accent: #fd79a8; --mud: #636e72; --stem: #00b894; --bloom: #d63031; }
-        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; padding: 15px; display: flex; justify-content: center; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; padding: 10px; display: flex; justify-content: center; }
         .app-card { width: 100%; max-width: 500px; background: var(--card); border-radius: 24px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
-        h1 { text-align: center; color: var(--accent); margin-bottom: 10px; }
+        h1 { text-align: center; color: var(--accent); margin-bottom: 5px; font-size: 1.5rem; }
         
-        /* Task Styling */
         .task-row { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
         .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-        .category-name { font-weight: bold; font-size: 0.8rem; color: #dfe6e9; text-transform: uppercase; }
+        .category-name { font-weight: bold; font-size: 0.75rem; color: #dfe6e9; text-transform: uppercase; letter-spacing: 0.5px; }
         .level-picker { display: flex; gap: 4px; background: #1e272e; padding: 3px; border-radius: 20px; }
         .lvl-btn { border: none; padding: 4px 8px; border-radius: 15px; cursor: pointer; font-size: 0.6rem; color: white; opacity: 0.2; }
         .lvl-btn.active { opacity: 1; transform: scale(1.1); }
-        .task-content { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
-        .completed { opacity: 0.4; filter: grayscale(1); }
+        .task-content { display: flex; align-items: center; gap: 10px; font-size: 0.85rem; line-height: 1.2; }
+        .completed { opacity: 0.3; filter: grayscale(1); }
 
-        /* Journal Section */
-        .journal-container { margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; }
-        textarea { width: 100%; background: #1e272e; border: 1px solid #444; color: white; border-radius: 10px; padding: 10px; box-sizing: border-box; resize: none; font-size: 0.85rem; margin-top: 10px; }
-        
-        /* History Dots */
+        .journal-container { margin-top: 15px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; }
+        textarea { width: 100%; background: #1e272e; border: 1px solid #444; color: white; border-radius: 10px; padding: 10px; box-sizing: border-box; resize: none; font-size: 0.85rem; margin-top: 5px; }
         .history-grid { display: flex; justify-content: space-between; margin-top: 10px; }
-        .dot { height: 12px; width: 12px; background: #444; border-radius: 50%; }
+        .dot { height: 10px; width: 10px; background: #444; border-radius: 50%; }
         .dot.filled { background: var(--stem); box-shadow: 0 0 8px var(--stem); }
     </style>
 </head>
 <body>
 
 <div class="app-card">
-    <h1>🪷 LOTUS DASHBOARD</h1>
-    <div id="dateDisplay" style="text-align:center; font-size:0.8rem; color:var(--accent); margin-bottom:15px;"></div>
+    <h1>🪷 LOTUS FLOW</h1>
+    <div id="dateDisplay" style="text-align:center; font-size:0.7rem; color:var(--accent); margin-bottom:15px; text-transform:uppercase;"></div>
     
     <div id="appBody"></div>
 
     <div class="journal-container">
-        <div style="font-size: 0.8rem; color: #f1c40f;">TODAY'S NOTES (The "Why")</div>
-        <textarea id="dailyNote" rows="3" placeholder="Why did you choose Mud today? How did it feel?" oninput="saveNote()"></textarea>
+        <div style="font-size: 0.75rem; color: #f1c40f; font-weight: bold;">NOTES (The "Why")</div>
+        <textarea id="dailyNote" rows="2" placeholder="Toddler tax? Stress eating? Note it here..." oninput="saveNote()"></textarea>
     </div>
 
     <div class="journal-container">
-        <div style="font-size: 0.8rem; color: #f1c40f; text-align: center;">7-DAY CONSISTENCY</div>
+        <div style="font-size: 0.75rem; color: #f1c40f; text-align: center; font-weight: bold; margin-bottom: 5px;">7-DAY CONSISTENCY</div>
         <div class="history-grid" id="historyGrid"></div>
     </div>
 </div>
 
 <script>
     const categories = [
-        { id: 'mind', name: 'Mindset', mud: '1m Vipassana', stem: '5m Vipassana', bloom: '10m + Mindful Eat' },
-        { id: 'water', name: 'Water', mud: '1 Glass', stem: '1.5L', bloom: '3L 💧' },
-        { id: 'health', name: 'Rhinitis', mud: 'Biotin+Chyaw.', stem: 'Pranayama+Eyes', bloom: 'All+Lotus Pause' },
+        { id: 'mind', name: 'Mindset', mud: '1m Vipassana', stem: '5m Vipassana', bloom: '10m + Mindful Eating' },
+        { id: 'skin', name: 'Skin Care', mud: 'Cleanse + Moisturize', stem: 'Cleanse + Serum + Moisturize', bloom: 'Double Cleanse + Serum + Eye Cream + SPF' },
+        { id: 'water', name: 'Hydration', mud: '1 Glass', stem: '1.5L', bloom: '3L 💧' },
+        { id: 'health', name: 'Rhinitis/Hair', mud: 'Biotin + Chyaw.', stem: 'Pranayama + Eye Ex.', bloom: 'All + Lotus Pause' },
         { id: 'career', name: 'Career', mud: 'Open Cert', stem: '10m Study', bloom: '1 Full Module' },
-        { id: 'body', name: 'Fitness', mud: '5 Jumps', stem: '10m Stretch', bloom: 'HIIT/Yoga' },
-        { id: 'read', name: 'Reading', mud: '1 Para', stem: '2 Pages', bloom: '10 Pages' },
-        { id: 'care', name: 'Belongings', mud: 'Check List', stem: 'Touch Key/Wallet', bloom: 'Clean Space' }
+        { id: 'body', name: 'Fitness', mud: '5 Jumping Jacks', stem: '10m Stretch', bloom: 'HIIT/Yoga Session' },
+        { id: 'read', name: 'Knowledge', mud: '1 Paragraph', stem: '2 Pages', bloom: '10 Pages' }
     ];
 
-    let state = JSON.parse(localStorage.getItem('lotusMasterState')) || { 
+    let state = JSON.parse(localStorage.getItem('lotusMasterStateV2')) || { 
         lastUpdate: new Date().toDateString(),
         tasks: {},
         history: [0,0,0,0,0,0,0],
@@ -75,13 +71,13 @@
             state.history.push(percent);
             state.history.shift();
             state.lastUpdate = today;
-            state.currentNote = ""; // Reset note for new day
+            state.currentNote = "";
             categories.forEach(c => { state.tasks[c.id] = { lvl: state.tasks[c.id]?.lvl || 0, done: false }; });
             save();
         }
     }
 
-    function save() { localStorage.setItem('lotusMasterState', JSON.stringify(state)); }
+    function save() { localStorage.setItem('lotusMasterStateV2', JSON.stringify(state)); }
     function saveNote() { state.currentNote = document.getElementById('dailyNote').value; save(); }
 
     function render() {
@@ -126,7 +122,6 @@
         state.history.forEach(pct => {
             const dot = document.createElement('div');
             dot.className = `dot ${pct >= 50 ? 'filled' : ''}`;
-            dot.title = pct + '%';
             grid.appendChild(dot);
         });
     }
