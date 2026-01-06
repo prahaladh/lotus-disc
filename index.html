@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lotus Master Tracker</title>
+    <style>
+        :root { --bg: #1e272e; --card: #2f3640; --accent: #fd79a8; --mud: #636e72; --stem: #00b894; --bloom: #d63031; }
+        body { font-family: 'Segoe UI', sans-serif; background: var(--bg); color: white; padding: 15px; display: flex; justify-content: center; }
+        .app-card { width: 100%; max-width: 500px; background: var(--card); border-radius: 24px; padding: 20px; box-shadow: 0 15px 35px rgba(0,0,0,0.5); }
+        h1 { text-align: center; color: var(--accent); margin-bottom: 10px; }
+        
+        /* Task Styling */
+        .task-row { background: rgba(255,255,255,0.03); padding: 12px; border-radius: 15px; margin-bottom: 10px; border: 1px solid rgba(255,255,255,0.05); }
+        .task-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .category-name { font-weight: bold; font-size: 0.8rem; color: #dfe6e9; text-transform: uppercase; }
+        .level-picker { display: flex; gap: 4px; background: #1e272e; padding: 3px; border-radius: 20px; }
+        .lvl-btn { border: none; padding: 4px 8px; border-radius: 15px; cursor: pointer; font-size: 0.6rem; color: white; opacity: 0.2; }
+        .lvl-btn.active { opacity: 1; transform: scale(1.1); }
+        .task-content { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; }
+        .completed { opacity: 0.4; filter: grayscale(1); }
+
+        /* Journal Section */
+        .journal-container { margin-top: 20px; background: rgba(0,0,0,0.2); padding: 15px; border-radius: 15px; }
+        textarea { width: 100%; background: #1e272e; border: 1px solid #444; color: white; border-radius: 10px; padding: 10px; box-sizing: border-box; resize: none; font-size: 0.85rem; margin-top: 10px; }
+        
+        /* History Dots */
+        .history-grid { display: flex; justify-content: space-between; margin-top: 10px; }
+        .dot { height: 12px; width: 12px; background: #444; border-radius: 50%; }
+        .dot.filled { background: var(--stem); box-shadow: 0 0 8px var(--stem); }
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <h1>🪷 LOTUS DASHBOARD</h1>
+    <div id="dateDisplay" style="text-align:center; font-size:0.8rem; color:var(--accent); margin-bottom:15px;"></div>
+    
+    <div id="appBody"></div>
+
+    <div class="journal-container">
+        <div style="font-size: 0.8rem; color: #f1c40f;">TODAY'S NOTES (The "Why")</div>
+        <textarea id="dailyNote" rows="3" placeholder="Why did you choose Mud today? How did it feel?" oninput="saveNote()"></textarea>
+    </div>
+
+    <div class="journal-container">
+        <div style="font-size: 0.8rem; color: #f1c40f; text-align: center;">7-DAY CONSISTENCY</div>
+        <div class="history-grid" id="historyGrid"></div>
+    </div>
+</div>
+
+<script>
+    const categories = [
+        { id: 'mind', name: 'Mindset', mud: '1m Vipassana', stem: '5m Vipassana', bloom: '10m + Mindful Eat' },
+        { id: 'water', name: 'Water', mud: '1 Glass', stem: '1.5L', bloom: '3L 💧' },
+        { id: 'health', name: 'Rhinitis', mud: 'Biotin+Chyaw.', stem: 'Pranayama+Eyes', bloom: 'All+Lotus Pause' },
+        { id: 'career', name: 'Career', mud: 'Open Cert', stem: '10m Study', bloom: '1 Full Module' },
+        { id: 'body', name: 'Fitness', mud: '5 Jumps', stem: '10m Stretch', bloom: 'HIIT/Yoga' },
+        { id: 'read', name: 'Reading', mud: '1 Para', stem: '2 Pages', bloom: '10 Pages' },
+        { id: 'care', name: 'Belongings', mud: 'Check List', stem: 'Touch Key/Wallet', bloom: 'Clean Space' }
+    ];
+
+    let state = JSON.parse(localStorage.getItem('lotusMasterState')) || { 
+        lastUpdate: new Date().toDateString(),
+        tasks: {},
+        history: [0,0,0,0,0,0,0],
+        currentNote: ""
+    };
+
+    function checkDailyReset() {
+        const today = new Date().toDateString();
+        if (state.lastUpdate !== today) {
+            const doneCount = Object.values(state.tasks).filter(t => t.done).length;
+            const percent = Math.round((doneCount / categories.length) * 100);
+            state.history.push(percent);
+            state.history.shift();
+            state.lastUpdate = today;
+            state.currentNote = ""; // Reset note for new day
+            categories.forEach(c => { state.tasks[c.id] = { lvl: state.tasks[c.id]?.lvl || 0, done: false }; });
+            save();
+        }
+    }
+
+    function save() { localStorage.setItem('lotusMasterState', JSON.stringify(state)); }
+    function saveNote() { state.currentNote = document.getElementById('dailyNote').value; save(); }
+
+    function render() {
+        checkDailyReset();
+        document.getElementById('dateDisplay').innerText = state.lastUpdate;
+        document.getElementById('dailyNote').value = state.currentNote || "";
+        const container = document.getElementById('appBody');
+        container.innerHTML = '';
+
+        categories.forEach(cat => {
+            if (!state.tasks[cat.id]) state.tasks[cat.id] = { lvl: 0, done: false };
+            const s = state.tasks[cat.id];
+            const taskText = s.lvl === 0 ? cat.mud : (s.lvl === 1 ? cat.stem : cat.bloom);
+
+            const row = document.createElement('div');
+            row.className = `task-row ${s.done ? 'completed' : ''}`;
+            row.innerHTML = `
+                <div class="task-header">
+                    <span class="category-name">${cat.name}</span>
+                    <div class="level-picker">
+                        <button class="lvl-btn mud-b ${s.lvl===0?'active':''}" onclick="updateTask('${cat.id}', 0)">M</button>
+                        <button class="lvl-btn stem-b ${s.lvl===1?'active':''}" onclick="updateTask('${cat.id}', 1)">S</button>
+                        <button class="lvl-btn bloom-b ${s.lvl===2?'active':''}" onclick="updateTask('${cat.id}', 2)">B</button>
+                    </div>
+                </div>
+                <div class="task-content">
+                    <input type="checkbox" ${s.done ? 'checked' : ''} onchange="toggleTask('${cat.id}')">
+                    <span>${taskText}</span>
+                </div>
+            `;
+            container.appendChild(row);
+        });
+        renderHistory();
+    }
+
+    function updateTask(id, lvl) { state.tasks[id].lvl = lvl; save(); render(); }
+    function toggleTask(id) { state.tasks[id].done = !state.tasks[id].done; save(); render(); }
+
+    function renderHistory() {
+        const grid = document.getElementById('historyGrid');
+        grid.innerHTML = '';
+        state.history.forEach(pct => {
+            const dot = document.createElement('div');
+            dot.className = `dot ${pct >= 50 ? 'filled' : ''}`;
+            dot.title = pct + '%';
+            grid.appendChild(dot);
+        });
+    }
+
+    render();
+</script>
+</body>
+</html>
